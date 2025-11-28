@@ -31,7 +31,7 @@ const BookingSchema = new mongoose.Schema({
   cbm: Number,
   truck_type: String,
   cargo_type: String,
-  continer_return_location: String,
+  container_return_location: String,
   container_return_date: Date,
   distance: Number,
   contact: String,

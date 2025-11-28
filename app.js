@@ -5,13 +5,11 @@ const mongoose = require('mongoose');
 const cors = require('cors');
 const { Server } = require('socket.io');
 const path = require("path");
-
-// Import Model
-const Booking = require('./models/Booking');
-
+const bookingRoute = require('./routes/bookings');
 const app = express();
 app.use(cors());
 
+app.use(express.json());
 // สร้าง HTTP Server จาก Express
 const server = http.createServer(app);
 
@@ -29,16 +27,21 @@ mongoose.connect(process.env.MONGO_URI).then(() => console.log('✅ Connected to
 io.on('connection', (socket) => {
     console.log('A user connected:', socket.id);
 
-    
+
     socket.on('disconnect', () => {
       console.log('User disconnected:', socket.id);
     });
 });
 
+// 🔥 [สำคัญ] เพิ่ม Middleware นี้ลงไป ก่อนเรียก routes
+// หน้าที่: ฝากตัวแปร io ใส่กระเป๋า req ไปด้วย
+app.use((req, res, next) => {
+    req.io = io;
+    next();
+});
 
-
-
-
+// เรียกใช้ Route
+app.use('/api/bookings', bookingRoute);
 
 const PORT = 3000;
 server.listen(PORT, () => {
