@@ -1,0 +1,49 @@
+const mongoose = require('mongoose');
+
+const BookingSchema = new mongoose.Schema({
+  type: String,
+  status: String,
+  booking_No: String,
+  branch: String,
+  customer_number: String,
+  customer_name: String,
+  origin: String,
+  destination: String,
+  carrier: String,
+  ship_name: String,
+  coload: String,
+  port_of_loading: String,
+  transport_number: String,
+  eta_date: Date,
+  eta_time: String,
+  quantity: Number,
+  container_type: String,
+  customer_invoice: String,
+  hawb_number: String,
+  mawb_number: String,
+  delivery_date: Date,
+  delivery_time: String,
+  cargo_quantity: Number,
+  total_weight: Number,
+  width: Number,
+  height: Number,
+  length: Number,
+  cbm: Number,
+  truck_type: String,
+  cargo_type: String,
+  continer_return_location: String,
+  container_return_date: Date,
+  distance: Number,
+  contact: String,
+  phone_number: String,
+  remark: String,
+  billing_address: String,
+  transport_charge: Number,
+  attachment: [String],
+  createdAt: { 
+    type: Date, 
+    default: Date.now 
+  }
+});
+
+module.exports = mongoose.model('Booking', BookingSchema);
