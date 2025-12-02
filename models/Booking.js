@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 
 const BookingSchema = new mongoose.Schema({
   type: String,
+  job: String,
   status: String,
   booking_No: String,
   branch: String,

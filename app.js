@@ -33,6 +33,7 @@ io.on('connection', (socket) => {
     try {
       const bookingData = {
         type: data.bookingType,
+        job: data.job,
         status: data.status || 'new',
         booking_No: data.bookingNo,
         branch: data.branch,
