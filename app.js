@@ -83,6 +83,19 @@ io.on('connection', (socket) => {
     }
   });
 
+  // Handle request to fetch all bookings
+  socket.on('getBookings', async () => {
+    console.log('Received getBookings request from:', socket.id);
+    try {
+      const bookings = await Booking.find().sort({ createdAt: -1 });
+      socket.emit('bookingsList', bookings);
+      console.log(`Sent ${bookings.length} bookings to client`);
+    } catch (err) {
+      console.error('Error fetching bookings:', err);
+      socket.emit('bookingsList', []);
+    }
+  });
+
 
   socket.on('disconnect', () => {
     console.log('User disconnected:', socket.id);
