@@ -83,6 +83,33 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('createCarRegistration', async (data) => {
+    console.log('Received createCarRegistration event:', data);
+    try {
+      const carRegistrationData = {
+        status: data.status,
+        vehicle_number: data.vehicleNumber,
+        fuel_type: data.fuelType,
+        type: data.type,
+        brand: data.brand,
+        company: data.company,
+        registration_date: data.registrationDate,
+        renewal_date: data.renewalDate,
+        expiration_date: data.expirationDate,
+        weight: data.weight,
+        cbm: data.cbm
+      };
+      const newCarRegistration = new CarRegistration(carRegistrationData);
+      await newCarRegistration.save();
+      console.log('Car registration saved via socket:', newCarRegistration._id);
+
+      // Notify clients
+      io.emit('server_notify_new_car_registration', newCarRegistration);
+
+    } catch (err) {
+      console.error('Error saving car registration via socket:', err);
+    }
+  });
   // Handle request to fetch all bookings
   socket.on('getBookings', async () => {
     console.log('Received getBookings request from:', socket.id);
