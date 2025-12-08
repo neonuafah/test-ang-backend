@@ -26,10 +26,8 @@ mongoose.connect(process.env.MONGO_URI).then(() => console.log('✅ Connected to
   .catch(err => console.error('❌ MongoDB Connection Error:', err));
 
 io.on('connection', (socket) => {
-  console.log('A user connected:', socket.id);
 
   socket.on('createBooking', async (data) => {
-    console.log('Received createBooking event:', data);
     try {
       const bookingData = {
         type: data.bookingType,
@@ -73,7 +71,6 @@ io.on('connection', (socket) => {
 
       const newBooking = new Booking(bookingData);
       await newBooking.save();
-      console.log('Booking saved via socket:', newBooking._id);
 
       // Notify clients
       io.emit('server_notify_new_booking', newBooking);
@@ -84,7 +81,6 @@ io.on('connection', (socket) => {
   });
 
   socket.on('createCarRegistration', async (data) => {
-    console.log('Received createCarRegistration event:', data);
     try {
       const carRegistrationData = {
         status: data.status,
@@ -101,7 +97,6 @@ io.on('connection', (socket) => {
       };
       const newCarRegistration = new CarRegistration(carRegistrationData);
       await newCarRegistration.save();
-      console.log('Car registration saved via socket:', newCarRegistration._id);
 
       // Notify clients
       io.emit('server_notify_new_car_registration', newCarRegistration);
@@ -112,11 +107,9 @@ io.on('connection', (socket) => {
   });
   // Handle request to fetch all bookings
   socket.on('getBookings', async () => {
-    console.log('Received getBookings request from:', socket.id);
     try {
       const bookings = await Booking.find().sort({ createdAt: -1 });
       socket.emit('bookingsList', bookings);
-      console.log(`Sent ${bookings.length} bookings to client`);
     } catch (err) {
       console.error('Error fetching bookings:', err);
       socket.emit('bookingsList', []);
@@ -125,8 +118,48 @@ io.on('connection', (socket) => {
 
 
   socket.on('disconnect', () => {
-    console.log('User disconnected:', socket.id);
+    // User disconnected
   });
+
+  // --- Setting Options (Dropdowns) ---
+  const SettingOption = require('./models/SettingOption');
+
+  socket.on('getSettings', async (category) => {
+    try {
+      // If category is provided, filter by it. If null/undefined, get all? 
+      // Usually the client asks for specific category.
+      // Let's support fetching by category.
+      const query = category ? { category } : {};
+      const options = await SettingOption.find(query).sort({ value: 1 });
+      socket.emit('settingsList', { category, options });
+    } catch (err) {
+      console.error('Error fetching settings:', err);
+    }
+  });
+
+  socket.on('createSetting', async (data) => {
+    try {
+      const { category, value } = data;
+      if (!category || !value) {
+        return;
+      }
+
+      // Check for duplicates
+      const existing = await SettingOption.findOne({ category, value });
+      if (existing) {
+        return;
+      }
+
+      const newOption = new SettingOption({ category, value });
+      await newOption.save();
+
+      // Emit back to ALL clients to update their dropdowns
+      io.emit('newSettingAdded', newOption);
+    } catch (err) {
+      console.error('Error saving setting:', err);
+    }
+  });
+
 });
 
 // 🔥 [สำคัญ] เพิ่ม Middleware นี้ลงไป ก่อนเรียก routes

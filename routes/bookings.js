@@ -7,12 +7,10 @@ router.post('/', async (req, res) => {
         const newBooking = new Booking(req.body);
         await newBooking.save();
 
-        console.log(newBooking);
-        
         // 🔥 เรียกใช้ Socket.io ตรงนี้ได้แล้ว!
         // ใช้ req.io แทน io เฉยๆ
         req.io.emit('server_notify_new_booking', newBooking);
-        
+
         res.status(201).json({ message: "Success", data: newBooking });
     } catch (err) {
         res.status(500).json({ error: err.message });
