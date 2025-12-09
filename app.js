@@ -7,6 +7,7 @@ const { Server } = require('socket.io');
 const path = require("path");
 const bookingRoute = require('./routes/bookings');
 const Booking = require('./models/Booking');
+const CarRegistration = require('./models/CarRegistration');
 const app = express();
 app.use(cors());
 
@@ -83,17 +84,34 @@ io.on('connection', (socket) => {
   socket.on('createCarRegistration', async (data) => {
     try {
       const carRegistrationData = {
-        status: data.status,
-        vehicle_number: data.vehicleNumber,
-        fuel_type: data.fuelType,
-        type: data.type,
+        status: data.status || 'Available',
+        vehicleNumber: data.vehicleNumber,
+        branch: data.branch,
+        truckType: data.truckType,
         brand: data.brand,
         company: data.company,
-        registration_date: data.registrationDate,
-        renewal_date: data.renewalDate,
-        expiration_date: data.expirationDate,
-        weight: data.weight,
-        cbm: data.cbm
+        engineNumber: data.engineNumber,
+        chassisNumber: data.chassisNumber,
+        color: data.color,
+        fuelType: data.fuelType,
+        model: data.model,
+        carryWeight: data.carryWeight,
+        insurance: data.insurance,
+        registrationDate: data.registrationDate,
+        renewalDate: data.renewalDate,
+        expirationDate: data.expirationDate,
+        avgMilePerFuel: data.avgMilePerFuel,
+        maintenanceCostPerKm: data.maintenanceCostPerKm,
+        tireCostPerKm: data.tireCostPerKm,
+        mileage: data.mileage,
+        lastMileage: data.lastMileage,
+        containerWidth: data.containerWidth,
+        containerLength: data.containerLength,
+        containerHeight: data.containerHeight,
+        carWeight: data.carWeight,
+        cbm: data.cbm,
+        fixCosts: data.fixCosts || [],
+        files: data.files || []
       };
       const newCarRegistration = new CarRegistration(carRegistrationData);
       await newCarRegistration.save();
@@ -105,6 +123,18 @@ io.on('connection', (socket) => {
       console.error('Error saving car registration via socket:', err);
     }
   });
+
+  // Handle request to fetch all car registrations
+  socket.on('getCarRegistrations', async () => {
+    try {
+      const carRegistrations = await CarRegistration.find().sort({ createdAt: -1 });
+      socket.emit('carRegistrationsList', carRegistrations);
+    } catch (err) {
+      console.error('Error fetching car registrations:', err);
+      socket.emit('carRegistrationsList', []);
+    }
+  });
+
   // Handle request to fetch all bookings
   socket.on('getBookings', async () => {
     try {
