@@ -8,6 +8,7 @@ const path = require("path");
 const bookingRoute = require('./routes/bookings');
 const Booking = require('./models/Booking');
 const CarRegistration = require('./models/CarRegistration');
+const PartnerVehicle = require('./models/PartnerVehicle');
 const app = express();
 app.use(cors());
 
@@ -146,6 +147,38 @@ io.on('connection', (socket) => {
     }
   });
 
+  // --- Partner Vehicle Handlers ---
+  socket.on('createPartnerVehicle', async (data) => {
+    try {
+      const partnerVehicleData = {
+        branch: data.branch,
+        truckType: data.truckType,
+        contact: data.contact,
+        phone: data.phone,
+        remark: data.remark,
+        status: data.status || 'Active',
+        fixCosts: data.fixCosts || []
+      };
+      const newPartnerVehicle = new PartnerVehicle(partnerVehicleData);
+      await newPartnerVehicle.save();
+
+      // Notify clients
+      io.emit('server_notify_new_partner_vehicle', newPartnerVehicle);
+    } catch (err) {
+      console.error('Error saving partner vehicle via socket:', err);
+    }
+  });
+
+  // Handle request to fetch all partner vehicles
+  socket.on('getPartnerVehicles', async () => {
+    try {
+      const partnerVehicles = await PartnerVehicle.find().sort({ createdAt: -1 });
+      socket.emit('partnerVehiclesList', partnerVehicles);
+    } catch (err) {
+      console.error('Error fetching partner vehicles:', err);
+      socket.emit('partnerVehiclesList', []);
+    }
+  });
 
   socket.on('disconnect', () => {
     // User disconnected
